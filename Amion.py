@@ -23,9 +23,9 @@ class Amion:
 
         "Holiday night": (dt.time(23, 0), dt.time(9, 0), 2),
 
-        "Hospitalist": (dt.time(0, 0), dt.time(0, 0)),
-        "Surgery": (dt.time(0, 0), dt.time(0, 0)),
-        "Anaesthesiology": (dt.time(0, 0), dt.time(0, 0)) 
+        "Hospitalist": (dt.time(0, 0), dt.time(0, 0), 3),
+        "Surgery": (dt.time(0, 0), dt.time(0, 0), 3),
+        "Anaesthesiology": (dt.time(0, 0), dt.time(0, 0), 3) 
     }
     def __init__(self, sourceFilename):
         self.sourceFileName = sourceFilename
