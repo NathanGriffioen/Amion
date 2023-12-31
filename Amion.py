@@ -5,23 +5,23 @@ import ics
 
 class Amion:
     shifttimes = {
-        "Week 8a-4p": (dt.time(8, 0), dt.time(16, 0)),
-        "Week 3p-11p": (dt.time(15, 0), dt.time(23, 0)),
+        "Week 8a-4p": (dt.time(8, 0), dt.time(16, 0), 0),
+        "Week 3p-11p": (dt.time(15, 0), dt.time(23, 0), 1),
 
-        "Week night": (dt.time(23, 0), dt.time(9, 0)),
+        "Week night": (dt.time(23, 0), dt.time(9, 0), 2),
 
-        "Friday 3pm-11pm": (dt.time(15, 0), dt.time(23, 0)),
-        "Friday night 11p-9a": (dt.time(23, 0), dt.time(9, 0)),
-        "Saturday 9am-4pm": (dt.time(9, 0), dt.time(16, 0)),
-        "Saturday 3-11pm": (dt.time(15, 0), dt.time(23, 0)),
-        "Saturday 11pm-9am": (dt.time(23, 0), dt.time(9, 0)),
-        "Sunday 9am-4pm": (dt.time(9, 0), dt.time(16, 0)),
-        "Sunday 3-11pm": (dt.time(15, 0), dt.time(23, 0)),
-        "Sunday 11p-8a": (dt.time(23, 0), dt.time(8, 0)),
-        "Holiday 9am-4pm": (dt.time(9, 0), dt.time(16, 0)),
-        "Holiday 3pm-11pm": (dt.time(15, 0), dt.time(23, 0)),
+        "Friday 3pm-11pm": (dt.time(15, 0), dt.time(23, 0), 1),
+        "Friday night 11p-9a": (dt.time(23, 0), dt.time(9, 0), 2),
+        "Saturday 9am-4pm": (dt.time(9, 0), dt.time(16, 0), 0),
+        "Saturday 3-11pm": (dt.time(15, 0), dt.time(23, 0), 1),
+        "Saturday 11pm-9am": (dt.time(23, 0), dt.time(9, 0), 2),
+        "Sunday 9am-4pm": (dt.time(9, 0), dt.time(16, 0), 0),
+        "Sunday 3-11pm": (dt.time(15, 0), dt.time(23, 0), 1),
+        "Sunday 11p-8a": (dt.time(23, 0), dt.time(8, 0), 2),
+        "Holiday 9am-4pm": (dt.time(9, 0), dt.time(16, 0), 0),
+        "Holiday 3pm-11pm": (dt.time(15, 0), dt.time(23, 0), 1),
 
-        "Holiday night": (dt.time(23, 0), dt.time(9, 0)),
+        "Holiday night": (dt.time(23, 0), dt.time(9, 0), 2),
 
         "Hospitalist": (dt.time(0, 0), dt.time(0, 0)),
         "Surgery": (dt.time(0, 0), dt.time(0, 0)),
@@ -38,7 +38,7 @@ class Amion:
                                   skip_blank_lines=True,\
                                       names = ["shiftType", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]\
                                         )
-        df = pd.DataFrame(columns=["Start", "End", "WeekDay", "Holiday", "ShiftType", "Doctor"])
+        df = pd.DataFrame(columns=["Start", "End", "Date", "ShiftNumber", "WeekDay", "Holiday", "ShiftType", "Doctor"])
         activeMonth = None
         activeYear = None
         dayDict = None
@@ -78,7 +78,7 @@ class Amion:
             else:
                 assert dayDict is not None
                 shiftType = row["shiftType"]
-                StartTime, EndTime = Amion.shifttimes[shiftType]
+                StartTime, EndTime, ShiftNumber = Amion.shifttimes[shiftType]
 
                 for key in row[1:].keys():
                     if not pd.isnull(row[key]):
@@ -97,6 +97,8 @@ class Amion:
                         df.loc[len(df)] = {
                                             "Start": StartDateTime,
                                             "End": EndDateTime,
+                                            "Date": date,
+                                            "ShiftNumber": ShiftNumber,
                                             "WeekDay": weekday,
                                             "Holiday": holiday,
                                             "ShiftType": shiftType,
