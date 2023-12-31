@@ -42,11 +42,6 @@ class Amion:
         return
     
     def toDataFrame(self):
-        self.rawdf = pd.read_csv(self.sourceFileName,\
-                             sep='\t',\
-                                  skip_blank_lines=True,\
-                                      names = ["shiftType", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]\
-                                        )
         df = pd.DataFrame(columns=["Start", "End", "Date", "ShiftNumber", "WeekDay", "Holiday", "ShiftType", "Doctor"])
         activeMonth = None
         activeYear = None
@@ -135,7 +130,7 @@ class Amion:
 '''   
 
 def main():
-    a = Amion(sourceFilename='swap.txt').toDataFrame()
+    a = Amion(sourceFilename=xl("'Amion Export'!A:H"), SourceAsDF=True).toDataFrame()
     return a
 
 if __name__ == '__main__':
