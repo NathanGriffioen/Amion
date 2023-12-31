@@ -135,7 +135,7 @@ class Amion:
 '''   
 
 def main():
-    a = Amion(sourceFilename='swap.txt').toICS('my.ics')
+    a = Amion(sourceFilename='swap.txt').toDataFrame()
     return
 
 if __name__ == '__main__':
