@@ -1,7 +1,7 @@
 import pandas as pd
 import datetime as dt
 import re
-import ics
+#import ics
 
 class Amion:
     shifttimes = {
@@ -27,13 +27,22 @@ class Amion:
         "Surgery": (dt.time(0, 0), dt.time(0, 0), 3),
         "Anaesthesiology": (dt.time(0, 0), dt.time(0, 0), 3) 
     }
-    def __init__(self, sourceFilename):
-        self.sourceFileName = sourceFilename
+    def __init__(self, sourceFile, SourceAsDF = False):
+        if SourceAsDF:
+            self.rawdf = sourceFile
+            self.sourceFileName = None
+        else:
+            self.sourceFileName = sourceFile
+            self.rawdf = pd.read_csv(self.sourceFileName,\
+                    sep='\t',\
+                        skip_blank_lines=True,\
+                            names = ["shiftType", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]\
+                            )
         self.df = None
         return
     
     def toDataFrame(self):
-        rawdf = pd.read_csv(self.sourceFileName,\
+        self.rawdf = pd.read_csv(self.sourceFileName,\
                              sep='\t',\
                                   skip_blank_lines=True,\
                                       names = ["shiftType", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]\
@@ -42,7 +51,7 @@ class Amion:
         activeMonth = None
         activeYear = None
         dayDict = None
-        for i, row in rawdf.iterrows():
+        for i, row in self.rawdf.iterrows():
             #IF HEADER ROW
             if pd.isnull(row["shiftType"]):
                 #Range Header
@@ -107,7 +116,7 @@ class Amion:
            
             self.df = df
         return self.df
-    
+''' 
     def toICS(self, outFile):
         if self.df is None:
             self.toDataFrame()
@@ -123,7 +132,7 @@ class Amion:
         with open(outFile, 'w') as my_file:
             my_file.writelines(C.serialize_iter())
         return
-    
+'''   
 
 def main():
     a = Amion(sourceFilename='swap.txt').toICS('my.ics')
