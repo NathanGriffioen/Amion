@@ -130,7 +130,7 @@ class Amion:
 '''   
 
 def main():
-    a = Amion(sourceFilename=xl("'Amion Export'!A:H"), SourceAsDF=True).toDataFrame()
+    a = Amion(sourceFile=xl("'Amion Export'!A:H"), SourceAsDF=True).toDataFrame()
     return a
 
 if __name__ == '__main__':
