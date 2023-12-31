@@ -136,7 +136,7 @@ class Amion:
 
 def main():
     a = Amion(sourceFilename='swap.txt').toDataFrame()
-    return
+    return a
 
 if __name__ == '__main__':
     main()
