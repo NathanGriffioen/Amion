@@ -1,48 +1,56 @@
 import pandas as pd
 import datetime as dt
 import re
-#import ics
+import builtins
+
 
 class Amion:
-    shifttimes = {
-        "Week 8a-4p": (dt.time(8, 0), dt.time(16, 0), 0),
-        "Week 3p-11p": (dt.time(15, 0), dt.time(23, 0), 1),
 
-        "Week night": (dt.time(23, 0), dt.time(9, 0), 2),
+    def __init__(self, sourceFile, shiftTimes = None):
+        match type(sourceFile):
+            case pd.DataFrame:
+                self.rawdf = sourceFile
+                self.sourceFileName = None
+            case builtins.str:
+                self.sourceFileName = sourceFile
+                self.rawdf = pd.read_csv(self.sourceFileName,\
+                        sep='\t',\
+                            skip_blank_lines=True,\
+                                names = ["shiftType", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]\
+                                )
+            case _:
+                print("Error on source type match")
+                
+        self.df = pd.DataFrame(columns=["Start", "End", "Date", "ShiftNumber", "WeekDay", "Holiday", "ShiftType", "Doctor"])
+        match type(shiftTimes):
+            case NoneType:
+                self.shifttimes = {
+                    "Week 8a-4p": (dt.time(8, 0), dt.time(16, 0), 0),
+                    "Week 3p-11p": (dt.time(15, 0), dt.time(23, 0), 1),
 
-        "Friday 3pm-11pm": (dt.time(15, 0), dt.time(23, 0), 1),
-        "Friday night 11p-9a": (dt.time(23, 0), dt.time(9, 0), 2),
-        "Saturday 9am-4pm": (dt.time(9, 0), dt.time(16, 0), 0),
-        "Saturday 3-11pm": (dt.time(15, 0), dt.time(23, 0), 1),
-        "Saturday 11pm-9am": (dt.time(23, 0), dt.time(9, 0), 2),
-        "Sunday 9am-4pm": (dt.time(9, 0), dt.time(16, 0), 0),
-        "Sunday 3-11pm": (dt.time(15, 0), dt.time(23, 0), 1),
-        "Sunday 11p-8a": (dt.time(23, 0), dt.time(8, 0), 2),
-        "Holiday 9am-4pm": (dt.time(9, 0), dt.time(16, 0), 0),
-        "Holiday 3pm-11pm": (dt.time(15, 0), dt.time(23, 0), 1),
+                    "Week night": (dt.time(23, 0), dt.time(9, 0), 2),
 
-        "Holiday night": (dt.time(23, 0), dt.time(9, 0), 2),
+                    "Friday 3pm-11pm": (dt.time(15, 0), dt.time(23, 0), 1),
+                    "Friday night 11p-9a": (dt.time(23, 0), dt.time(9, 0), 2),
+                    "Saturday 9am-4pm": (dt.time(9, 0), dt.time(16, 0), 0),
+                    "Saturday 3-11pm": (dt.time(15, 0), dt.time(23, 0), 1),
+                    "Saturday 11pm-9am": (dt.time(23, 0), dt.time(9, 0), 2),
+                    "Sunday 9am-4pm": (dt.time(9, 0), dt.time(16, 0), 0),
+                    "Sunday 3-11pm": (dt.time(15, 0), dt.time(23, 0), 1),
+                    "Sunday 11p-8a": (dt.time(23, 0), dt.time(8, 0), 2),
+                    "Holiday 9am-4pm": (dt.time(9, 0), dt.time(16, 0), 0),
+                    "Holiday 3pm-11pm": (dt.time(15, 0), dt.time(23, 0), 1),
 
-        "Hospitalist": (dt.time(0, 0), dt.time(0, 0), 3),
-        "Surgery": (dt.time(0, 0), dt.time(0, 0), 3),
-        "Anaesthesiology": (dt.time(0, 0), dt.time(0, 0), 3) 
-    }
-    def __init__(self, sourceFile, SourceAsDF = False):
-        if SourceAsDF:
-            self.rawdf = sourceFile
-            self.sourceFileName = None
-        else:
-            self.sourceFileName = sourceFile
-            self.rawdf = pd.read_csv(self.sourceFileName,\
-                    sep='\t',\
-                        skip_blank_lines=True,\
-                            names = ["shiftType", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]\
-                            )
-        self.df = None
+                    "Holiday night": (dt.time(23, 0), dt.time(9, 0), 2),
+
+                    "Hospitalist": (dt.time(0, 0), dt.time(0, 0), 3),
+                    "Surgery": (dt.time(0, 0), dt.time(0, 0), 3),
+                    "Anaesthesiology": (dt.time(0, 0), dt.time(0, 0), 3) 
+                }
+
         return
     
     def toDataFrame(self):
-        df = pd.DataFrame(columns=["Start", "End", "Date", "ShiftNumber", "WeekDay", "Holiday", "ShiftType", "Doctor"])
         activeMonth = None
         activeYear = None
         dayDict = None
@@ -62,16 +70,24 @@ class Amion:
                     dayDict = dict()
                     for key in row[1:].keys():
                         #print(key, row[key])
-                        m = re.search(r'^(\d{1,2}) (January|February|March|April|May|June|July|August|September|October|November|December)', str(row[key]))
-                        m2 = re.search(r'^(\d{1,2}) (?!January|February|March|April|May|June|July|August|September|October|November|December)(.*)$', str(row[key]))
-                        if m:
-                            day, activeMonth = m.groups()
+                        daySpaceFullMonthName = re.search(r'^(\d{1,2}) (January|February|March|April|May|June|July|August|September|October|November|December)$', str(row[key]))
+                        daySpaceFullHoliday = re.search(r'^(\d{1,2}) (?!January|February|March|April|May|June|July|August|September|October|November|December)(.*)$', str(row[key]))
+                        dayDashMonthAbriviation = re.search(r'(\d{1,2})-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$', str(row[key]))
+                        if daySpaceFullMonthName:
+                            day, activeMonth = daySpaceFullMonthName.groups()
                             activeMonth = dt.datetime.strptime(activeMonth, "%B").month
                             day = int(day)
                             holiday = None
-                        elif m2:
-                            day, holiday = m2.groups()   
+
+                        elif daySpaceFullHoliday:
+                            day, holiday = daySpaceFullHoliday.groups()   
                             day = int(day)  
+
+                        elif dayDashMonthAbriviation:
+                            day, activeMonth = dayDashMonthAbriviation.groups()
+                            activeMonth = dt.datetime.strptime(activeMonth,"%b").month
+                            day = int(day)
+                            holiday = None
                         else:
                             day = row[key]
                             holiday = None
@@ -82,7 +98,7 @@ class Amion:
             else:
                 assert dayDict is not None
                 shiftType = row["shiftType"]
-                StartTime, EndTime, ShiftNumber = Amion.shifttimes[shiftType]
+                StartTime, EndTime, ShiftNumber = self.shifttimes[shiftType]
 
                 for key in row[1:].keys():
                     if not pd.isnull(row[key]):
@@ -98,7 +114,7 @@ class Amion:
                             StartDateTime = dt.datetime.combine(date, StartTime)
                             EndDateTime = dt.datetime.combine(date + dt.timedelta(days=1), EndTime)
 
-                        df.loc[len(df)] = {
+                        self.df.loc[len(self.df)] = {
                                             "Start": StartDateTime,
                                             "End": EndDateTime,
                                             "Date": date,
@@ -109,10 +125,10 @@ class Amion:
                                             "Doctor": doctor
                                         }
            
-            self.df = df
         return self.df
-''' 
+ 
     def toICS(self, outFile):
+        import ics
         if self.df is None:
             self.toDataFrame()
 
@@ -127,10 +143,13 @@ class Amion:
         with open(outFile, 'w') as my_file:
             my_file.writelines(C.serialize_iter())
         return
-'''   
 
 def main():
-    a = Amion(sourceFile=xl("'Amion Export'!A:H", headers=True), SourceAsDF=True).toDataFrame()
+    #a = Amion(sourceFile=xl("'Amion Export'!A:H", headers=True), SourceAsDF=True).toDataFrame()
+    #a = Amion(sourceFile='swap.txt', SourceAsDF=False).toDataFrame()
+    source = pd.read_csv('SwapPython.csv')
+    a = Amion(sourceFile=source).toDataFrame()
+    print(a)
     return a
 
 if __name__ == '__main__':
